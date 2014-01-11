@@ -5,19 +5,21 @@ Page {
     id: mainPage
 
     function addAccount() {
-        var dialog = pageStack.push("NewAccountDialog.qml")
+        pagesModel.append({"title":"desc","key":"test"})
     }
 
     SilicaListView {
         id: listView
         anchors.fill: parent
         pullDownMenu:pullDownMenu
-        header: PageHeader { title: "SailfishAuth" }
+        header: PageHeader { id: pageHeader
+            title: "SailfishAuth" }
         model: ListModel {
             id: pagesModel
+            // Testowy element
             ListElement {
-                title: "Text"
-                key: "1231s2sss3ssssss"
+                title: "Account#1"
+                key: "1234567"
             }
         }
         VerticalScrollDecorator {}
@@ -68,8 +70,9 @@ Page {
         PullDownMenu {
             id: pullDownMenu
             MenuItem {
+                id: menuItem1
                 text: "Add account"
-                onClicked: mainPage.addAccount()
+                onClicked: pageStack.push(Qt.resolvedUrl("NewAccountDialog.qml"))
             }
             MenuItem {
                 text: "About"
