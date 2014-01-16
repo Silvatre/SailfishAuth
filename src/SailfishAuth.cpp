@@ -33,7 +33,7 @@
 #endif
 
 #include <sailfishapp.h>
-
+#include "account.h"
 
 int main(int argc, char *argv[])
 {
@@ -46,6 +46,28 @@ int main(int argc, char *argv[])
     //
     // To display the view, call "show()" (will show fullscreen on device).
 
+
+    //QScopedPointer<QGuiApplication> app(SailfishApp::application(argc,argv));
+    //QScopedPointer<QQuickView> view(SailfishApp::createView());
+    //qmlRegisterUncreatableType<Account>("OAth", 1, 0, "Account", "Use AccountModel::createAccount() to create a new account");
+
+    qmlRegisterType<Account>("pl.polsl.pum", 1, 0, "Account");
+
+    /*
+    Account data;
+    view->rootContext()->setContextProperty("account", &data);
+    view->setSource(SailfishApp::pathTo("qml/SailfishAuth.qml"));
+    */
+
+    /*
+    QGuiApplication* app = SailfishApp::application(argc, argv);
+    QQuickView* view = SailfishApp::createView();
+
+    Account account;
+    view->rootContext()->setContextProperty("account", &account);
+    view->setSource(QUrl::fromLocalFile("../qml/pages/MainPage.qml"));
+    view->show();
+    */
     return SailfishApp::main(argc, argv);
 }
 

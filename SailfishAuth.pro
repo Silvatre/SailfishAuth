@@ -6,11 +6,15 @@
 #         - desktop icon filename must be changed
 #         - desktop filename must be changed
 #         - icon definition filename in desktop file must be changed
+
 TARGET = SailfishAuth
 
 CONFIG += sailfishapp
 
-SOURCES += src/SailfishAuth.cpp
+SOURCES += src/SailfishAuth.cpp \
+    src/account.cpp \
+    src/oauth.cpp
+
 
 OTHER_FILES += qml/SailfishAuth.qml \
     qml/cover/CoverPage.qml \
@@ -18,5 +22,8 @@ OTHER_FILES += qml/SailfishAuth.qml \
     rpm/SailfishAuth.yaml \
     SailfishAuth.desktop \
     qml/pages/MainPage.qml \
-    qml/pages/NewAccountDialog.qml
+    qml/pages/NewAccountDialog.qml \
 
+HEADERS += \
+    src/account.h \
+    src/oauth.h
