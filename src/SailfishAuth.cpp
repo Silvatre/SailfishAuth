@@ -34,6 +34,7 @@
 
 #include <sailfishapp.h>
 #include "account.h"
+#include "oauth.h"
 
 int main(int argc, char *argv[])
 {
@@ -50,6 +51,22 @@ int main(int argc, char *argv[])
     //QScopedPointer<QGuiApplication> app(SailfishApp::application(argc,argv));
     //QScopedPointer<QQuickView> view(SailfishApp::createView());
     //qmlRegisterUncreatableType<Account>("OAth", 1, 0, "Account", "Use AccountModel::createAccount() to create a new account");
+
+    while (true) {
+        QString secretBase32 = "v54v7fqfqudv4mbacilyifwf7nhmzzyl";
+        QByteArray array (secretBase32.toStdString().c_str());
+        QByteArray secretHex = Account::fromBase32(array);
+
+        QDateTime local(QDateTime::currentDateTime());
+        QDateTime UTC(local.toUTC());
+        uint secsPassed = UTC.toTime_t();
+        qulonglong interval = secsPassed/30;
+        QString intervalsHex = QString::number(interval, 16);
+        // TODO Tutaj moze nie zapisac szesnastkowo
+        Oauth oa = Oauth();
+        QString output = oa.generateTOTP(secretHex, intervalsHex.toUpper(), "6", "HmacSHA1");
+
+    }
 
     qmlRegisterType<Account>("pl.polsl.pum", 1, 0, "Account");
 

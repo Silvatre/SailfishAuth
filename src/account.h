@@ -36,6 +36,8 @@ public:
 
     QString otp() const;
 
+    static QByteArray fromBase32(const QByteArray &input);
+
 signals:
     void nameChanged();
     void secretChanged();
@@ -48,8 +50,6 @@ public slots:
 
 private:
     void generate();
-
-    static QByteArray fromBase32(const QByteArray &input);
 
 private:
     QUuid m_id;

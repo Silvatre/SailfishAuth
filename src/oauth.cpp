@@ -25,7 +25,6 @@ QString Oauth::generateTOTP(QByteArray key, QString time, QString returnDigits, 
         msgAuthCode.addData(msg);
         QByteArray hash = msgAuthCode.result().toHex();      // returns "de7c9b85b8b78aa6bc8a7a36f70a90701c9db4d9"
 
-
         // put selected bytes into result int
         int offset = hash.at(hash.length() - 1) & 0xf;
 
@@ -72,17 +71,33 @@ QByteArray Oauth::hmacSha1(QByteArray key, QByteArray baseString)
 }
 */
 
+
+/* FIXME Ma dzialac tak jak kod powyzej, ale nie bangla
+ * Do debugowania wystarczy sobie puścić projekt z algorytmem
+ * w Javie i debugować równolegle. Metody mają te same nazwy.
+ */
 QByteArray Oauth::hexStr2Bytes(QString hex){
     // Adding one byte to get the right conversion
     // Values starting with "0" can be converted
-    QString addedVal = "10" + hex;
-    bool* ok;
-    int number = addedVal.toInt(ok, 16);
-    QByteArray bArray = QByteArray::number (number);
+    bool ok;
+
+    volatile quint64 number = hex.toLongLong(&ok, 16);
+    QByteArray bArray;
+
+    for(quint64 i = 0; i != sizeof(number); ++i)
+    {
+      bArray.append((char)(number&(0xFF << i) >>i));
+    }
+
+    bArray.append(16);
+    bArray.append(QByteArray::number (number, 10));
     // Copy all the REAL bytes, not the "first"
-    QByteArray ret;
+    long s = number;
+
+    QByteArray ret;/*
     ret.resize(bArray.length() - 1);
     for (int i = 0; i < ret.length(); i++)
         ret.insert(i, bArray[i]);
-    return ret;
+*/
+return ret;
 }
