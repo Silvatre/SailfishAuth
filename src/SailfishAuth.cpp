@@ -52,6 +52,10 @@ int main(int argc, char *argv[])
     //QScopedPointer<QQuickView> view(SailfishApp::createView());
     //qmlRegisterUncreatableType<Account>("OAth", 1, 0, "Account", "Use AccountModel::createAccount() to create a new account");
 
+
+    /*
+     * Debugowanie dzialania algorytmu
+     */
     while (true) {
         QString secretBase32 = "v54v7fqfqudv4mbacilyifwf7nhmzzyl";
         QByteArray array (secretBase32.toStdString().c_str());
