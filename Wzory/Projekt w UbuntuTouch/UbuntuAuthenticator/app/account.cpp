@@ -23,9 +23,6 @@
 #include <QDebug>
 
 #define SIZE_MAX UINT_MAX
-extern "C" {
-#include "oath.h"
-}
 
 Account::Account(const QUuid &id, QObject *parent) :
     QObject(parent),

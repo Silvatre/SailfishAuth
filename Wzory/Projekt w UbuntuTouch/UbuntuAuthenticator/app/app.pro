@@ -24,3 +24,6 @@ qmlfolder.target = .
 DEPLOYMENTFOLDERS = qmlfolder
 
 include(../deployment.pri)
+
+OTHER_FILES += \
+    qml.qml

@@ -70,5 +70,6 @@ desktop-file-install --delete-original       \
 /usr/share/SailfishAuth
 /usr/share/applications
 /usr/share/icons/hicolor/90x90/apps
+/usr/share/icons/hicolor/86x86/apps
 # >> files
 # << files

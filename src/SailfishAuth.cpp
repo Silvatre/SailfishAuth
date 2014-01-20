@@ -34,7 +34,9 @@
 
 #include <sailfishapp.h>
 #include "account.h"
+#include "accountmodel.h"
 #include "oauth.h"
+#include "stdio.h"
 
 int main(int argc, char *argv[])
 {
@@ -47,48 +49,10 @@ int main(int argc, char *argv[])
     //
     // To display the view, call "show()" (will show fullscreen on device).
 
+    qmlRegisterType<AccountModel>("pl.polsl.sailfishauth", 1, 0, "AccountModel");
+    qmlRegisterUncreatableType<Account>("pl.polsl.sailfishauth", 1, 0, "Account", "Use AccountModel::createAccount() to create a new account");
+    qmlRegisterType<Account>("pl.polsl.sailfishauth", 1, 0, "Account");
 
-    //QScopedPointer<QGuiApplication> app(SailfishApp::application(argc,argv));
-    //QScopedPointer<QQuickView> view(SailfishApp::createView());
-    //qmlRegisterUncreatableType<Account>("OAth", 1, 0, "Account", "Use AccountModel::createAccount() to create a new account");
-
-
-    /*
-     * Debugowanie dzialania algorytmu
-     */
-    while (true) {
-        QString secretBase32 = "v54v7fqfqudv4mbacilyifwf7nhmzzyl";
-        QByteArray array (secretBase32.toStdString().c_str());
-        QByteArray secretHex = Account::fromBase32(array);
-
-        QDateTime local(QDateTime::currentDateTime());
-        QDateTime UTC(local.toUTC());
-        uint secsPassed = UTC.toTime_t();
-        qulonglong interval = secsPassed/30;
-        QString intervalsHex = QString::number(interval, 16);
-        // TODO Tutaj moze nie zapisac szesnastkowo
-        Oauth oa = Oauth();
-        QString output = oa.generateTOTP(secretHex, intervalsHex.toUpper(), "6", "HmacSHA1");
-
-    }
-
-    qmlRegisterType<Account>("pl.polsl.pum", 1, 0, "Account");
-
-    /*
-    Account data;
-    view->rootContext()->setContextProperty("account", &data);
-    view->setSource(SailfishApp::pathTo("qml/SailfishAuth.qml"));
-    */
-
-    /*
-    QGuiApplication* app = SailfishApp::application(argc, argv);
-    QQuickView* view = SailfishApp::createView();
-
-    Account account;
-    view->rootContext()->setContextProperty("account", &account);
-    view->setSource(QUrl::fromLocalFile("../qml/pages/MainPage.qml"));
-    view->show();
-    */
     return SailfishApp::main(argc, argv);
 }
 

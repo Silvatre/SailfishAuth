@@ -1,9 +1,9 @@
 #include "oauth.h"
 #include <QMessageAuthenticationCode>
+#include <stdio.h>
 Oauth::Oauth()
 {
 }
-
 
 QString Oauth::generateTOTP(QByteArray key, QString time, QString returnDigits, QString crypto){
         bool* ok;
@@ -18,12 +18,7 @@ QString Oauth::generateTOTP(QByteArray key, QString time, QString returnDigits, 
 
         // Get the HEX in a Byte[]
         QByteArray msg = hexStr2Bytes(time);
-
-        //QByteArray hash = hmacSha1(key, msg);
-        QMessageAuthenticationCode msgAuthCode(QCryptographicHash::Sha1);
-        msgAuthCode.setKey(key);
-        msgAuthCode.addData(msg);
-        QByteArray hash = msgAuthCode.result().toHex();      // returns "de7c9b85b8b78aa6bc8a7a36f70a90701c9db4d9"
+        QByteArray hash = hmacSha1(key, msg);
 
         // put selected bytes into result int
         int offset = hash.at(hash.length() - 1) & 0xf;
@@ -43,7 +38,6 @@ QString Oauth::generateTOTP(QByteArray key, QString time, QString returnDigits, 
         return result;
 }
 
-/*
 QByteArray Oauth::hmacSha1(QByteArray key, QByteArray baseString)
 {
     int blockSize = 64; // HMAC-SHA-1 block size, defined in SHA-1 standard
@@ -67,37 +61,24 @@ QByteArray Oauth::hmacSha1(QByteArray key, QByteArray baseString)
     part.append(baseString);
     total.append(QCryptographicHash::hash(part, QCryptographicHash::Sha1));
     QByteArray hashed = QCryptographicHash::hash(total, QCryptographicHash::Sha1);
-    return hashed.toBase64();
+    return hashed;
 }
-*/
 
-
-/* FIXME Ma dzialac tak jak kod powyzej, ale nie bangla
- * Do debugowania wystarczy sobie puścić projekt z algorytmem
- * w Javie i debugować równolegle. Metody mają te same nazwy.
- */
 QByteArray Oauth::hexStr2Bytes(QString hex){
+    QByteArray ba = hex.toLocal8Bit();
+    char* pos = ba.data();
+    unsigned char val[12];
+    size_t count = 0;
+
+    for(count = 0; count < sizeof(val)/sizeof(val[0]); count++) {
+       sscanf(pos, "%2hhx", &val[count]);
+       pos += 2 * sizeof(char);
+    }
+    val[ba.size()/2] = '\0';
+
     // Adding one byte to get the right conversion
     // Values starting with "0" can be converted
-    bool ok;
-
-    volatile quint64 number = hex.toLongLong(&ok, 16);
-    QByteArray bArray;
-
-    for(quint64 i = 0; i != sizeof(number); ++i)
-    {
-      bArray.append((char)(number&(0xFF << i) >>i));
-    }
-
-    bArray.append(16);
-    bArray.append(QByteArray::number (number, 10));
-    // Copy all the REAL bytes, not the "first"
-    long s = number;
-
-    QByteArray ret;/*
-    ret.resize(bArray.length() - 1);
-    for (int i = 0; i < ret.length(); i++)
-        ret.insert(i, bArray[i]);
-*/
-return ret;
+    QByteArray ret = QByteArray(reinterpret_cast<char*>(val), ba.size()/2);
+    pos++;
+    return ret;
 }

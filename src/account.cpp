@@ -106,10 +106,15 @@ void Account::next()
 {
     m_counter++;
     qDebug() << "emitting changed";
-    emit counterChanged();
+    //emit counterChanged();
     generate();
 }
 
+
+/**
+ * TOTP generator.
+ * @brief Account::generate
+ */
 void Account::generate()
 {
     if (m_secret.isEmpty()) {
@@ -122,15 +127,19 @@ void Account::generate()
         return;
     }
 
+    qDebug() << "Generating secret" << m_name << m_secret << m_counter << m_pinLength << m_otp;
     QByteArray hexSecret = fromBase32(m_secret.toLatin1());
     qDebug() << "hexSecret" << hexSecret;
-    char code[6];
-    //oath_hotp_generate(hexSecret.data(), hexSecret.length(), m_counter, m_pinLength, false, OATH_HOTP_DYNAMIC_TRUNCATION, code);
-
-    m_otp = QLatin1String(code);
-    //    qDebug() << "Generating secret" << m_name << m_secret << m_counter << m_pinLength << m_otp;
-    emit otpChanged();
-
+    QDateTime local(QDateTime::currentDateTime());
+    QDateTime UTC(local.toUTC());
+    uint secsPassed = UTC.toTime_t();
+    qulonglong interval = secsPassed/30;
+    QString intervalHex = QString::number(interval, 16);
+    Oauth oa = Oauth();
+    // TODO change
+    m_otp = oa.generateTOTP(hexSecret, intervalHex.toUpper(), "6", "HmacSHA1");
+    qDebug() << "Generated code: " << m_otp;
+    //emit otpChanged();
 }
 
 

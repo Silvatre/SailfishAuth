@@ -13,7 +13,8 @@ CONFIG += sailfishapp
 
 SOURCES += src/SailfishAuth.cpp \
     src/account.cpp \
-    src/oauth.cpp
+    src/oauth.cpp \
+    src/accountmodel.cpp
 
 
 OTHER_FILES += qml/SailfishAuth.qml \
@@ -22,8 +23,8 @@ OTHER_FILES += qml/SailfishAuth.qml \
     rpm/SailfishAuth.yaml \
     SailfishAuth.desktop \
     qml/pages/MainPage.qml \
-    qml/pages/NewAccountDialog.qml \
 
 HEADERS += \
     src/account.h \
-    src/oauth.h
+    src/oauth.h \
+    src/accountmodel.h
