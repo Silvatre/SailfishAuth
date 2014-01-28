@@ -13,7 +13,9 @@ class Account : public QObject
     Q_PROPERTY(QString secret READ secret WRITE setSecret NOTIFY secretChanged)
     Q_PROPERTY(quint64 counter READ counter WRITE setCounter NOTIFY counterChanged)
     Q_PROPERTY(int pinLength READ pinLength WRITE setPinLength NOTIFY pinLengthChanged)
+    Q_PROPERTY(int timeStep READ timeStep WRITE setTimeStep NOTIFY timeStepChanged)
     Q_PROPERTY(QString otp READ otp NOTIFY otpChanged)
+    Q_PROPERTY(bool timeControlled READ timeControlled WRITE setTimeControlled NOTIFY tcChanged)
 
 public:
     explicit Account(QObject *parent = 0);
@@ -34,9 +36,15 @@ public:
     int pinLength() const;
     void setPinLength(int pinLength);
 
+    int timeStep() const;
+    void setTimeStep(int pinLength);
+
     QString otp() const;
 
     static QByteArray fromBase32(const QByteArray &input);
+
+    bool timeControlled() const;
+    void setTimeControlled(bool timeControlled);
 
 signals:
     void nameChanged();
@@ -44,9 +52,12 @@ signals:
     void counterChanged();
     void pinLengthChanged();
     void otpChanged();
+    void tcChanged();
+    void timeStepChanged();
 
 public slots:
     void next();
+    double getTimeToNextBlock();
 
 private:
     void generate();
@@ -57,7 +68,9 @@ private:
     QString m_secret;
     quint64 m_counter;
     int m_pinLength;
+    int m_timeStep;
     QString m_otp;
+    bool m_timeControlled;
 };
 
 #endif // ACCOUNT_H

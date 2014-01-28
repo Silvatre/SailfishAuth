@@ -1,23 +1,3 @@
-/*****************************************************************************
- * Copyright: 2013 Michael Zanetti <michael_zanetti@gmx.net>                 *
- *                                                                           *
- * This file is part of ubuntu-authenticator                                 *
- *                                                                           *
- * This prject is free software: you can redistribute it and/or modify       *
- * it under the terms of the GNU General Public License as published by      *
- * the Free Software Foundation, either version 3 of the License, or         *
- * (at your option) any later version.                                       *
- *                                                                           *
- * This project is distributed in the hope that it will be useful,           *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of            *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the             *
- * GNU General Public License for more details.                              *
- *                                                                           *
- * You should have received a copy of the GNU General Public License         *
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.     *
- *                                                                           *
- ****************************************************************************/
-
 #include "accountmodel.h"
 #include "account.h"
 
@@ -46,12 +26,16 @@ AccountModel::AccountModel(QObject *parent) :
         account->setSecret(settings.value("secret").toString());
         account->setCounter(settings.value("counter").toInt());
         account->setPinLength(settings.value("pinLength").toInt());
+        account->setTimeControlled(settings.value("timeControlled").toBool());
+        account->setTimeStep(settings.value("timeStep").toInt());
 
         connect(account, SIGNAL(nameChanged()), SLOT(accountChanged()));
         connect(account, SIGNAL(secretChanged()), SLOT(accountChanged()));
         connect(account, SIGNAL(counterChanged()), SLOT(accountChanged()));
         connect(account, SIGNAL(pinLengthChanged()), SLOT(accountChanged()));
         connect(account, SIGNAL(otpChanged()), SLOT(accountChanged()));
+        connect(account, SIGNAL(tcChanged()), SLOT(accountChanged()));
+        connect(account, SIGNAL(timeStepChanged()), SLOT(accountChanged()));
 
         m_accounts.append(account);
 
@@ -82,6 +66,10 @@ QVariant AccountModel::data(const QModelIndex &index, int role) const
         return m_accounts.at(index.row())->pinLength();
     case RoleOtp:
         return m_accounts.at(index.row())->otp();
+    case RoleTimeControlled:
+        return m_accounts.at(index.row())->timeControlled();
+    case RoleTimeStep:
+        return m_accounts.at(index.row())->timeStep();
     }
 
     return QVariant();
@@ -102,6 +90,8 @@ Account *AccountModel::createAccount()
     connect(account, SIGNAL(counterChanged()), SLOT(accountChanged()));
     connect(account, SIGNAL(pinLengthChanged()), SLOT(accountChanged()));
     connect(account, SIGNAL(otpChanged()), SLOT(accountChanged()));
+    connect(account, SIGNAL(tcChanged()), SLOT(accountChanged()));
+    connect(account, SIGNAL(timeStepChanged()), SLOT(accountChanged()));
 
     storeAccount(account);
 
@@ -138,6 +128,8 @@ QHash<int, QByteArray> AccountModel::roleNames() const
     roles.insert(RoleCounter, "counter");
     roles.insert(RolePinLength, "pinLength");
     roles.insert(RoleOtp, "otp");
+    roles.insert(RoleTimeControlled, "timeControlled");
+    roles.insert(RoleTimeStep, "timeStep");
     return roles;
 }
 
@@ -161,13 +153,16 @@ void AccountModel::refresh()
     emit endResetModel();
 }
 
-double AccountModel::getTimeToNextBlock() {
-    QDateTime local(QDateTime::currentDateTime());
-    QDateTime UTC(local.toUTC());
-    double secsPassed = UTC.toTime_t();
-    int interval = secsPassed/30;
-    double secsToNextBlock = secsPassed - interval*30;
-    return secsToNextBlock;
+void AccountModel::refresh(int index)
+{
+    QModelIndex modelIndex = this->index(index);
+    emit dataChanged(modelIndex, modelIndex);
+    //emit beginResetModel();
+    //emit endResetModel();
+}
+
+bool AccountModel::isTimeControlled(int account){
+    return m_accounts.at(account)->timeControlled();
 }
 
 void AccountModel::accountChanged()
@@ -188,6 +183,8 @@ void AccountModel::storeAccount(Account *account)
     settings.setValue("secret", account->secret());
     settings.setValue("counter", account->counter());
     settings.setValue("pinLength", account->pinLength());
+    settings.setValue("timeControlled", account->timeControlled());
+    settings.setValue("timeStep", account->timeStep());
     settings.endGroup();
     qDebug() << "saved to" << settings.fileName();
 

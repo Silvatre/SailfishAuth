@@ -1,23 +1,3 @@
-/*****************************************************************************
- * Copyright: 2013 Michael Zanetti <michael_zanetti@gmx.net>                 *
- *                                                                           *
- * This file is part of ubuntu-authenticator                                 *
- *                                                                           *
- * This prject is free software: you can redistribute it and/or modify       *
- * it under the terms of the GNU General Public License as published by      *
- * the Free Software Foundation, either version 3 of the License, or         *
- * (at your option) any later version.                                       *
- *                                                                           *
- * This project is distributed in the hope that it will be useful,           *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of            *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the             *
- * GNU General Public License for more details.                              *
- *                                                                           *
- * You should have received a copy of the GNU General Public License         *
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.     *
- *                                                                           *
- ****************************************************************************/
-
 #include "account.h"
 #include "oauth.h"
 #include <QDebug>
@@ -33,7 +13,9 @@ Account::Account(const QUuid &id, QObject *parent) :
     QObject(parent),
     m_id(id),
     m_counter(0),
-    m_pinLength(6)
+    m_pinLength(6),
+    m_timeControlled(true),
+    m_timeStep(30)
 {
 }
 
@@ -74,18 +56,32 @@ quint64 Account::counter() const
     return m_counter;
 }
 
+void Account::setTimeControlled(bool timeControlled){
+    this->m_timeControlled = timeControlled;
+    emit tcChanged();
+}
+
 void Account::setCounter(quint64 counter)
 {
     if (m_counter != counter) {
         m_counter = counter;
         emit counterChanged();
-        generate();
     }
 }
 
 int Account::pinLength() const
 {
     return m_pinLength;
+}
+
+int Account::timeStep() const
+{
+    return m_timeStep;
+}
+
+bool Account::timeControlled() const
+{
+    return m_timeControlled;
 }
 
 void Account::setPinLength(int pinLength)
@@ -97,6 +93,15 @@ void Account::setPinLength(int pinLength)
     }
 }
 
+void Account::setTimeStep(int timeStep)
+{
+    if (m_timeStep != timeStep) {
+        m_timeStep = timeStep;
+        emit timeStepChanged();
+        generate();
+    }
+}
+
 QString Account::otp() const
 {
     return m_otp;
@@ -104,15 +109,11 @@ QString Account::otp() const
 
 void Account::next()
 {
-    m_counter++;
-    qDebug() << "emitting changed";
-    //emit counterChanged();
     generate();
 }
 
-
 /**
- * TOTP generator.
+ * Tokens (HOTP, TOTP) generator.
  * @brief Account::generate
  */
 void Account::generate()
@@ -130,19 +131,28 @@ void Account::generate()
     qDebug() << "Generating secret" << m_name << m_secret << m_counter << m_pinLength << m_otp;
     QByteArray hexSecret = fromBase32(m_secret.toLatin1());
     qDebug() << "hexSecret" << hexSecret;
-    QDateTime local(QDateTime::currentDateTime());
-    QDateTime UTC(local.toUTC());
-    uint secsPassed = UTC.toTime_t();
-    qulonglong interval = secsPassed/30;
-    QString intervalHex = QString::number(interval, 16);
     Oauth oa = Oauth();
-    // TODO change
-    m_otp = oa.generateTOTP(hexSecret, intervalHex.toUpper(), "6", "HmacSHA1");
+    if (m_timeControlled) {
+        qDebug() << " <TOTP>" << m_otp;
+        m_otp = oa.generateTOTP(hexSecret, m_timeStep, QString::number(m_pinLength));
+    }
+    else {
+        qDebug() << " <HOTP>" << m_otp;
+        m_otp = oa.generateHOTP(hexSecret, QString::number(m_counter), QString::number(m_pinLength));
+        setCounter(m_counter+1);
+    }
     qDebug() << "Generated code: " << m_otp;
     //emit otpChanged();
 }
 
-
+double Account::getTimeToNextBlock() {
+    QDateTime local(QDateTime::currentDateTime());
+    QDateTime UTC(local.toUTC());
+    double secsPassed = UTC.toTime_t();
+    int interval = secsPassed/m_timeStep;
+    double secsToNextBlock = secsPassed - interval*m_timeStep;
+    return secsToNextBlock;
+}
 
 QByteArray Account::fromBase32(const QByteArray &input)
 {

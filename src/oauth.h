@@ -7,7 +7,8 @@ class Oauth
 {
 public:
     Oauth();
-    QString generateTOTP(QByteArray key, QString time, QString returnDigits, QString crypto);
+    QString generateHOTP(QByteArray key, QString counter, QString returnDigits);
+    QString generateTOTP(QByteArray key, int timeStep, QString returnDigits);
     QByteArray hmacSha1(QByteArray key, QByteArray baseString);
     QByteArray hexStr2Bytes(QString hex);
     QByteArray encryptToByteArray(QByteArray plaintext);

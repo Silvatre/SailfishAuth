@@ -1,41 +1,50 @@
 #include "oauth.h"
 #include <QMessageAuthenticationCode>
 #include <stdio.h>
+#include <qmath.h>
 Oauth::Oauth()
 {
 }
 
-QString Oauth::generateTOTP(QByteArray key, QString time, QString returnDigits, QString crypto){
-        bool* ok;
-        int codeDigits = returnDigits.toInt(ok);
-        QString result;
+QString Oauth::generateHOTP(QByteArray key, QString counter, QString returnDigits){
+    bool* ok;
+    int codeDigits = returnDigits.toInt(ok);
+    QString result;
 
-        // Using the counter
-        // First 8 bytes are for the movingFactor
-        // Compliant with base RFC 4226 (HOTP)
-        while (time.length() < 16 )
-            time = "0" + time;
+    // Using the counter
+    // First 8 bytes are for the movingFactor
+    // Compliant with base RFC 4226 (HOTP)
+    while (counter.length() < 16 )
+        counter = "0" + counter;
 
-        // Get the HEX in a Byte[]
-        QByteArray msg = hexStr2Bytes(time);
-        QByteArray hash = hmacSha1(key, msg);
+    // Get the HEX in a Byte[]
+    QByteArray msg = hexStr2Bytes(counter);
+    QByteArray hash = hmacSha1(key, msg);
 
-        // put selected bytes into result int
-        int offset = hash.at(hash.length() - 1) & 0xf;
+    // put selected bytes into result int
+    int offset = hash.at(hash.length() - 1) & 0xf;
 
-        int binary =
-            ((hash.at(offset) & 0x7f) << 24) |
-            ((hash.at(offset + 1) & 0xff) << 16) |
-            ((hash.at(offset + 2) & 0xff) << 8) |
-            (hash.at(offset + 3) & 0xff);
+    int binary =
+        ((hash.at(offset) & 0x7f) << 24) |
+        ((hash.at(offset + 1) & 0xff) << 16) |
+        ((hash.at(offset + 2) & 0xff) << 8) |
+        (hash.at(offset + 3) & 0xff);
 
-        // int otp = binary % DIGITS_POWER[codeDigits];
-        int otp = binary % 1000000;
-        result = QString::number(otp, 10);
-        while (result.length() < codeDigits) {
-            result = "0" + result;
-        }
-        return result;
+    int otp = binary % (int) qPow(10, codeDigits);
+    result = QString::number(otp, 10);
+    while (result.length() < codeDigits) {
+        result = "0" + result;
+    }
+    return result;
+}
+
+QString Oauth::generateTOTP(QByteArray key, int timeStep, QString returnDigits){
+    QDateTime local(QDateTime::currentDateTime());
+    QDateTime UTC(local.toUTC());
+    uint secsPassed = UTC.toTime_t();
+    qulonglong interval = secsPassed/timeStep;
+    QString intervalHex = QString::number(interval, 16);
+    return generateHOTP(key, intervalHex.toUpper(), returnDigits);
 }
 
 QByteArray Oauth::hmacSha1(QByteArray key, QByteArray baseString)

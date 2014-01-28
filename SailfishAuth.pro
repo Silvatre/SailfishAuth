@@ -18,11 +18,12 @@ SOURCES += src/SailfishAuth.cpp \
 
 
 OTHER_FILES += qml/SailfishAuth.qml \
-    qml/cover/CoverPage.qml \
     rpm/SailfishAuth.spec \
     rpm/SailfishAuth.yaml \
     SailfishAuth.desktop \
     qml/pages/MainPage.qml \
+    qml/pages/AboutPage.qml \
+
 
 HEADERS += \
     src/account.h \
