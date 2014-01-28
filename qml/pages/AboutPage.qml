@@ -79,7 +79,7 @@ Page {
                     Label {
                         anchors.horizontalCenter: parent.horizontalCenter
                         font.bold: true
-                        text: "Michał Szmorlisński"
+                        text: "Michał Szmorliński"
                         color: Theme.primaryColor
                     }
                     Label {
